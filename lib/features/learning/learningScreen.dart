@@ -1,63 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:testy_fiber/core/constants/app_colors.dart';
+import 'package:testy_fiber/models/pattern_model.dart';
 import 'package:testy_fiber/models/project_model.dart';
 import 'package:testy_fiber/services/project_service.dart';
 
-class LearningScreen extends StatefulWidget {
-  final Project? project;
-  final VoidCallback onProjectUpdated;
-  final VoidCallback onProjectDeleted;
+class LearningScreen extends StatelessWidget {
+  final VoidCallback onPatternStarted;
 
-  const LearningScreen({
-    super.key,
-    this.project,
-    required this.onProjectUpdated,
-    required this.onProjectDeleted,
-  });
-
-  @override
-  State<LearningScreen> createState() => _LearningScreenState();
-}
-
-class _LearningScreenState extends State<LearningScreen>
-    with SingleTickerProviderStateMixin {
-  final ProjectService _service = ProjectService();
-  late AnimationController _pulseController;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-      lowerBound: 0.9,
-      upperBound: 1.0,
-      value: 1.0,
-    );
-  }
-
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    super.dispose();
-  }
+  const LearningScreen({super.key, required this.onPatternStarted});
 
   @override
   Widget build(BuildContext context) {
+    final patterns = ProjectService.patterns;
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Header ──
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(
-                  "Projects ",
+                  "Explore ",
                   style: GoogleFonts.poppins(
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
@@ -65,7 +34,7 @@ class _LearningScreenState extends State<LearningScreen>
                   ),
                 ),
                 Text(
-                  "Details",
+                  "Patterns",
                   style: GoogleFonts.poppins(
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
@@ -74,13 +43,23 @@ class _LearningScreenState extends State<LearningScreen>
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 6),
 
-            // ── Content ──
-            if (widget.project == null)
-              _buildNoProjectSelected()
-            else
-              _buildProjectDetails(widget.project!),
+            // ── Subtitle ──
+            Text(
+              "Explore our collection of crochet patterns!",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: AppColors.lightGrey,
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // ── Pattern Cards ──
+            ...patterns.map((pattern) => _buildPatternCard(pattern, context)),
+
+            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -88,423 +67,295 @@ class _LearningScreenState extends State<LearningScreen>
   }
 
   // ─────────────────────────────────────────────────
-  // No Project Selected
+  // Pattern Card
   // ─────────────────────────────────────────────────
-  Widget _buildNoProjectSelected() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 30),
-      decoration: BoxDecoration(
-        color: AppColors.darkGrey,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white10, width: 1),
-      ),
-      child: Column(
-        children: [
-          const Icon(
-            Icons.touch_app_rounded,
-            size: 64,
-            color: AppColors.lightGrey,
-          ),
-          const SizedBox(height: 20),
-          Text(
-            "Select a Project",
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: AppColors.white,
+  Widget _buildPatternCard(CrochetPattern pattern, BuildContext context) {
+    return GestureDetector(
+      onTap: () => _showPatternDetails(pattern, context),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color: AppColors.darkGrey,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white10, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.12),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
             ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            "Go to the Projects tab and tap\na project card to view details.",
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: AppColors.lightGrey,
-              height: 1.6,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────
-  // Project Details
-  // ─────────────────────────────────────────────────
-  Widget _buildProjectDetails(Project project) {
-    return Column(
-      children: [
-        // ── Project Name ──
-        Text(
-          project.name,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            color: AppColors.white,
-          ),
+          ],
         ),
-        const SizedBox(height: 12),
-
-        // ── Category Badge ──
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.secondary,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            project.category,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: AppColors.primary,
-            ),
-          ),
-        ),
-        const SizedBox(height: 28),
-
-        // ── Materials Info ──
-        if (project.hookSize.isNotEmpty || project.yarnType.isNotEmpty)
-          Column(
-            children: [
-              if (project.hookSize.isNotEmpty)
-                Text(
-                  "Hook: ${project.hookSize}",
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.lightGrey,
-                  ),
-                ),
-              if (project.yarnType.isNotEmpty)
-                Text(
-                  project.yarnType,
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.lightGrey,
-                  ),
-                ),
-              const SizedBox(height: 28),
-            ],
-          ),
-
-        // ── Row Counter ──
-        _buildRowCounter(project),
-        const SizedBox(height: 28),
-
-        // ── Pattern Notes ──
-        if (project.patternNotes.isNotEmpty) _buildPatternNotes(project),
-        const SizedBox(height: 28),
-
-        // ── Mark as Completed ──
-        if (!project.isCompleted) _buildMarkCompletedButton(project),
-        if (project.isCompleted)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              color: AppColors.secondary.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: AppColors.secondary, width: 2),
-            ),
-            child: Center(
-              child: Text(
-                "✓ Completed",
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.secondary,
-                ),
-              ),
-            ),
-          ),
-        const SizedBox(height: 16),
-
-        // ── Delete Project ──
-        GestureDetector(
-          onTap: () => _showDeleteConfirmation(project),
-          child: Text(
-            "Delete Project",
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.lightRed,
-              decoration: TextDecoration.underline,
-              decorationColor: AppColors.lightRed,
-            ),
-          ),
-        ),
-        const SizedBox(height: 30),
-      ],
-    );
-  }
-
-  // ─────────────────────────────────────────────────
-  // Row Counter
-  // ─────────────────────────────────────────────────
-  Widget _buildRowCounter(Project project) {
-    return Column(
-      children: [
-        Text(
-          "Current Row",
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.white,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Row(
           children: [
-            // Minus Button
-            GestureDetector(
-              onTap: () async {
-                if (project.currentRow > 0) {
-                  _pulseController.reverse().then(
-                    (_) => _pulseController.forward(),
-                  );
-                  await _service.decrementRow(project.id);
-                  setState(() {});
-                  widget.onProjectUpdated();
-                }
-              },
-              child: Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFF6B9D),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFFF6B9D).withOpacity(0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Center(
-                  child: Icon(Icons.remove, size: 32, color: Colors.white),
-                ),
+            // Icon Circle
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.blue.withOpacity(0.2),
+                shape: BoxShape.circle,
               ),
-            ),
-            const SizedBox(width: 36),
-
-            // Row Count Number
-            ScaleTransition(
-              scale: _pulseController,
-              child: Text(
-                "${project.currentRow}",
-                style: GoogleFonts.poppins(
-                  fontSize: 64,
-                  fontWeight: FontWeight.w700,
+              child: Center(
+                child: Icon(
+                  _getPatternIcon(pattern.category),
                   color: AppColors.blue,
+                  size: 24,
                 ),
               ),
             ),
-            const SizedBox(width: 36),
+            const SizedBox(width: 14),
 
-            // Plus Button
-            GestureDetector(
-              onTap: () async {
-                _pulseController.reverse().then(
-                  (_) => _pulseController.forward(),
-                );
-                await _service.incrementRow(project.id);
-                setState(() {});
-                widget.onProjectUpdated();
-              },
-              child: Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: AppColors.secondary,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.secondary.withOpacity(0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+            // Name + Category
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    pattern.name,
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.white,
                     ),
-                  ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    pattern.category,
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.lightGrey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Difficulty Badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: _getDifficultyColor(
+                  pattern.difficulty,
+                ).withOpacity(0.15),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: _getDifficultyColor(pattern.difficulty),
+                  width: 1.5,
                 ),
-                child: const Center(
-                  child: Icon(Icons.add, size: 32, color: AppColors.primary),
+              ),
+              child: Text(
+                pattern.difficulty,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: _getDifficultyColor(pattern.difficulty),
                 ),
               ),
             ),
           ],
         ),
-      ],
+      ),
     );
   }
 
   // ─────────────────────────────────────────────────
-  // Pattern Notes
+  // Pattern Details Bottom Sheet
   // ─────────────────────────────────────────────────
-  Widget _buildPatternNotes(Project project) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.blue.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.blue.withOpacity(0.3), width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+  void _showPatternDetails(CrochetPattern pattern, BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
+            color: Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(
-                Icons.note_alt_rounded,
-                size: 20,
-                color: AppColors.blue,
+              // Handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.lightGrey,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(height: 24),
+
+              // Pattern Name
               Text(
-                "Pattern Notes",
+                pattern.name,
                 style: GoogleFonts.poppins(
-                  fontSize: 16,
+                  fontSize: 24,
                   fontWeight: FontWeight.w700,
                   color: AppColors.white,
                 ),
               ),
+              const SizedBox(height: 8),
+
+              // Category + Difficulty Row
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.blue,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      pattern.category,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getDifficultyColor(
+                        pattern.difficulty,
+                      ).withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: _getDifficultyColor(pattern.difficulty),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Text(
+                      pattern.difficulty,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: _getDifficultyColor(pattern.difficulty),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+
+              // Description
+              Text(
+                pattern.description,
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  color: AppColors.lightGrey,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Start Pattern Button
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final newProject = Project(
+                      id: ProjectService().generateId(),
+                      name: pattern.name,
+                      category: pattern.category,
+                      hookSize: "",
+                      yarnType: "",
+                      patternNotes: pattern.description,
+                    );
+                    await ProjectService().addProject(newProject);
+
+                    Navigator.pop(ctx);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "\"${pattern.name}\" started! 🧶",
+                          style: GoogleFonts.poppins(),
+                        ),
+                        backgroundColor: AppColors.blue,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    );
+
+                    onPatternStarted();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.secondary,
+                    foregroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 4,
+                  ),
+                  child: Text(
+                    "Start This Pattern",
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
             ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            project.patternNotes,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: AppColors.lightGrey,
-              height: 1.6,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────
-  // Mark Completed Button
-  // ─────────────────────────────────────────────────
-  Widget _buildMarkCompletedButton(Project project) {
-    return GestureDetector(
-      onTap: () async {
-        await _service.markAsCompleted(project.id);
-        setState(() {});
-        widget.onProjectUpdated();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "\"${project.name}\" marked as completed! 🎉",
-              style: GoogleFonts.poppins(),
-            ),
-            backgroundColor: AppColors.secondary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
           ),
         );
       },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: AppColors.primary,
-          borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: AppColors.white, width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Center(
-          child: Text(
-            "Mark as Completed",
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.white,
-            ),
-          ),
-        ),
-      ),
     );
   }
 
   // ─────────────────────────────────────────────────
-  // Delete Confirmation
+  // Helpers
   // ─────────────────────────────────────────────────
-  void _showDeleteConfirmation(Project project) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          "Delete Project?",
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w700,
-            color: AppColors.white,
-          ),
-        ),
-        content: Text(
-          "Are you sure you want to delete \"${project.name}\"? This cannot be undone.",
-          style: GoogleFonts.poppins(fontSize: 14, color: AppColors.lightGrey),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              "Cancel",
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                color: AppColors.lightGrey,
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () async {
-              await _service.removeProject(project.id);
-              Navigator.pop(ctx);
-              widget.onProjectDeleted();
+  IconData _getPatternIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'amigurumi':
+        return Icons.pets;
+      case 'blankets':
+        return Icons.grid_on_rounded;
+      case 'accessories':
+        return Icons.checkroom;
+      case 'baby':
+        return Icons.child_care;
+      case 'home decor':
+        return Icons.home_rounded;
+      case 'bags':
+        return Icons.shopping_bag;
+      default:
+        return Icons.auto_awesome;
+    }
+  }
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    "\"${project.name}\" deleted",
-                    style: GoogleFonts.poppins(),
-                  ),
-                  backgroundColor: AppColors.lightRed,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              );
-            },
-            child: Text(
-              "Delete",
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w700,
-                color: AppColors.lightRed,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  Color _getDifficultyColor(String difficulty) {
+    switch (difficulty.toLowerCase()) {
+      case 'beginner':
+        return AppColors.secondary;
+      case 'intermediate':
+        return const Color(0xFFFFB74D);
+      case 'advanced':
+        return AppColors.lightRed;
+      default:
+        return AppColors.secondary;
+    }
   }
 }

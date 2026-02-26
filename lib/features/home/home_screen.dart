@@ -1,7 +1,9 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:testy_fiber/core/constants/app_colors.dart';
 import 'package:testy_fiber/features/Project/ProjectScreen.dart';
+import 'package:testy_fiber/features/Project/project_details_screen.dart';
 import 'package:testy_fiber/features/learning/learningScreen.dart';
 import 'package:testy_fiber/features/menu/menuScreen.dart';
 import 'package:testy_fiber/models/project_model.dart';
@@ -16,7 +18,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  Project? _selectedProject;
   final ProjectService _service = ProjectService();
 
   // Daily hints data
@@ -36,12 +37,57 @@ class _HomeScreenState extends State<HomeScreen> {
       'idea': 'Color Inspiration',
       'days': '3 Days',
     },
+    {
+      'quote': '" Just one more row...\n  (said 3 hours ago). "',
+      'idea': 'Late Night Making',
+      'days': '7 Days',
+    },
+    {
+      'quote': '" Yarn: because stabbing\n  people is frowned upon. "',
+      'idea': 'Stress Relief',
+      'days': '2 Days',
+    },
+    {
+      'quote': '" In a world full of knots,\n  be a smooth skein. "',
+      'idea': 'Zen Crafting',
+      'days': '4 Days',
+    },
+    {
+      'quote': '" My superpower is turning\n  string into things. "',
+      'idea': 'Super Crafter',
+      'days': '6 Days',
+    },
+    {
+      'quote': '" A day without crochet is\n  like... just kidding! "',
+      'idea': 'Daily Habit',
+      'days': '8 Days',
+    },
+    {
+      'quote': '" If I can\'t bring my yarn,\n  I am not going. "',
+      'idea': 'Always Crafting',
+      'days': '9 Days',
+    },
+    {
+      'quote': '" Crochet: the beautiful art\n  of looping love. "',
+      'idea': 'Handmade Gifts',
+      'days': '1 Day',
+    },
   ];
 
   void _onProjectSelected(Project project) {
-    setState(() {
-      _selectedProject = project;
-      _selectedIndex = 2; // Switch to Learn / Details tab
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProjectDetailsScreen(
+          project: project,
+          onProjectUpdated: _refresh,
+          onProjectDeleted: () {
+            // Screen handles its own pop, we just refresh after
+          },
+        ),
+      ),
+    ).then((_) {
+      _refresh();
     });
   }
 
@@ -65,12 +111,9 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
       case 2:
         currentScreen = LearningScreen(
-          project: _selectedProject,
-          onProjectUpdated: _refresh,
-          onProjectDeleted: () {
+          onPatternStarted: () {
             setState(() {
-              _selectedProject = null;
-              _selectedIndex = 1; // Back to Projects
+              _selectedIndex = 1; // Go to projects tab
             });
           },
         );
@@ -412,12 +455,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const SizedBox(width: 16),
-        // Yarn Stash → navigate to patterns/menu tab
+        // Yarn Stash → navigate to patterns (Learn tab)
         Expanded(
           child: GestureDetector(
             onTap: () {
               setState(() {
-                _selectedIndex = 3; // Go to menu / patterns tab
+                _selectedIndex = 2; // Go to Learn / patterns tab
               });
             },
             child: Container(
@@ -452,9 +495,9 @@ class _HomeScreenState extends State<HomeScreen> {
   // Daily Hints Card
   // ─────────────────────────────────────────────────
   Widget _buildDailyHintsCard() {
-    // Rotate hints based on day of year
-    final dayIndex = DateTime.now().day % _dailyHints.length;
-    final hint = _dailyHints[dayIndex];
+    // Pick a random hint whenever this card builds
+    final hintIndex = Random().nextInt(_dailyHints.length);
+    final hint = _dailyHints[hintIndex];
 
     return Container(
       width: double.infinity,
