@@ -129,6 +129,14 @@ class ProjectService {
     await _save();
   }
 
+  Future<void> updateProject(Project project) async {
+    final index = _projects.indexWhere((p) => p.id == project.id);
+    if (index != -1) {
+      _projects[index] = project;
+      await _save();
+    }
+  }
+
   Future<void> removeProject(String id) async {
     _projects.removeWhere((p) => p.id == id);
     await _save();

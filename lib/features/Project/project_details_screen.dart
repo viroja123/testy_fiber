@@ -162,7 +162,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen>
         const SizedBox(height: 28),
 
         // ── Pattern Notes ──
-        if (project.patternNotes.isNotEmpty) _buildPatternNotes(project),
+        _buildPatternNotes(project),
         const SizedBox(height: 28),
 
         // ── Mark as Completed ──
@@ -324,31 +324,117 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Icon(
-                Icons.note_alt_rounded,
-                size: 20,
-                color: AppColors.blue,
+              Row(
+                children: [
+                  const Icon(
+                    Icons.note_alt_rounded,
+                    size: 20,
+                    color: AppColors.blue,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Pattern Notes",
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.white,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Text(
-                "Pattern Notes",
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.white,
-                ),
+              IconButton(
+                icon: const Icon(Icons.edit, color: AppColors.blue, size: 20),
+                onPressed: () => _editPatternNotes(project),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
             ],
           ),
           const SizedBox(height: 12),
           Text(
-            project.patternNotes,
+            project.patternNotes.isEmpty
+                ? "No notes added yet. Tap edit to add some."
+                : project.patternNotes,
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w400,
-              color: AppColors.lightGrey,
+              color: project.patternNotes.isEmpty
+                  ? AppColors.lightGrey.withOpacity(0.5)
+                  : AppColors.lightGrey,
               height: 1.6,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _editPatternNotes(Project project) {
+    final TextEditingController notesController = TextEditingController(
+      text: project.patternNotes,
+    );
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          "Edit Pattern Notes",
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w700,
+            color: AppColors.white,
+          ),
+        ),
+        content: TextField(
+          controller: notesController,
+          maxLines: 5,
+          style: GoogleFonts.poppins(color: AppColors.white),
+          decoration: InputDecoration(
+            hintText: "Enter notes here...",
+            hintStyle: GoogleFonts.poppins(color: AppColors.lightGrey),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: AppColors.lightGrey.withOpacity(0.3),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.blue),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              "Cancel",
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                color: AppColors.lightGrey,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              setState(() {
+                project.patternNotes = notesController.text;
+              });
+              await _service.updateProject(project);
+              widget.onProjectUpdated();
+              if (mounted) {
+                Navigator.pop(ctx);
+              }
+            },
+            child: Text(
+              "Save",
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w700,
+                color: AppColors.blue,
+              ),
             ),
           ),
         ],
