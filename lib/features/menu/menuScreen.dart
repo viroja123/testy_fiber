@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:testy_fiber/core/constants/app_colors.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:share_plus/share_plus.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
@@ -53,8 +55,13 @@ class MenuScreen extends StatelessWidget {
               context,
               icon: Icons.privacy_tip_rounded,
               title: "Privacy Policy",
-              onTap: () {
-                _showTempDialog(context, "Privacy Policy");
+              onTap: () async {
+                final Uri url = Uri.parse(
+                  "https://sites.google.com/view/taskyfiberprivacypolicy/home",
+                );
+                if (!await launchUrl(url)) {
+                  _showTempDialog(context, "Could not launch Privacy Policy");
+                }
               },
             ),
             const SizedBox(height: 16),
@@ -64,7 +71,9 @@ class MenuScreen extends StatelessWidget {
               icon: Icons.share_rounded,
               title: "Share App",
               onTap: () {
-                _showTempDialog(context, "Share App");
+                Share.share(
+                  'Check out Tasky Fiber, an amazing app for managing your tasks!\n\nDownload Now: https://play.google.com/store/apps/details?id=com.taskyfiber.app',
+                );
               },
             ),
             const SizedBox(height: 16),
@@ -73,23 +82,17 @@ class MenuScreen extends StatelessWidget {
               context,
               icon: Icons.star_rounded,
               title: "Rate It",
-              onTap: () {
-                _showTempDialog(context, "Rate App");
+              onTap: () async {
+                // Placeholder link for Google Play or App Store
+                final Uri storeUrl = Uri.parse(
+                  "https://play.google.com/store/apps/details?id=com.taskyfiber.app",
+                );
+                if (!await launchUrl(storeUrl)) {
+                  _showTempDialog(context, "Could not open App Store");
+                }
               },
             ),
             const SizedBox(height: 16),
-
-            _buildMenuItem(
-              context,
-              icon: Icons.help_outline_rounded,
-              title: "Help & Support",
-              onTap: () {
-                _showTempDialog(context, "Help & Support");
-              },
-            ),
-
-            const SizedBox(height: 40),
-
             // App Version
             Center(
               child: Text(

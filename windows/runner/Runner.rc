@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.testyfiber.app" "\0"
-            VALUE "FileDescription", "testy_fiber" "\0"
+            VALUE "CompanyName", "com.taskyfiber.app" "\0"
+            VALUE "FileDescription", "Tasky Fiber" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "testy_fiber" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.testyfiber.app. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.taskyfiber.app. All rights reserved." "\0"
             VALUE "OriginalFilename", "testy_fiber.exe" "\0"
-            VALUE "ProductName", "testy_fiber" "\0"
+            VALUE "ProductName", "Tasky Fiber" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

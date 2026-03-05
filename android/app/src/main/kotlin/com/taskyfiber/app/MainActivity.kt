@@ -1,4 +1,4 @@
-package com.testyfiber.app.testy_fiber
+package com.taskyfiber.app
 
 import io.flutter.embedding.android.FlutterActivity
 
